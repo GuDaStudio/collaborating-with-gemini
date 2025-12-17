@@ -160,10 +160,14 @@ def main():
         except Exception as error:
             err_message += "\n\n[unexpected error] " + f"Unexpected error: {error}. Line: {line!r}"
             break
-
+    
+    result = {}
+    
     if thread_id is None:
         success = False
         err_message = "Failed to get `SESSION_ID` from the gemini session. \n\n" + err_message
+    else:
+        result["SESSION_ID"] = thread_id
 
     if success and len(agent_messages) == 0:
         success = False
@@ -171,15 +175,14 @@ def main():
             "Failed to retrieve `agent_messages` data from the Gemini session. This might be due to Gemini performing a tool call. You can continue using the `SESSION_ID` to proceed with the conversation. \n\n "
             + err_message
         )
-
+    
+    
     if success:
-        result = {
-            "success": True,
-            "SESSION_ID": thread_id,
-            "agent_messages": agent_messages,
-        }
+        result["agent_messages"] = agent_messages
     else:
-        result = {"success": False, "error": err_message}
+        result["error"] = err_message
+        
+    result["success"] = success
 
     if args.return_all_messages:
         result["all_messages"] = all_messages
