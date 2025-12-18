@@ -12,10 +12,10 @@ import time
 import shutil
 import argparse
 from pathlib import Path
-from typing import Generator
+from typing import Generator, List, Optional
 
 
-def run_shell_command(cmd: list[str], cwd: str | None = None) -> Generator[str, None, None]:
+def run_shell_command(cmd: List[str], cwd: Optional[str] = None) -> Generator[str, None, None]:
     """Execute a command and stream its output line-by-line."""
     popen_cmd = cmd.copy()
     gemini_path = shutil.which('gemini') or cmd[0]
@@ -32,7 +32,7 @@ def run_shell_command(cmd: list[str], cwd: str | None = None) -> Generator[str, 
         cwd=cwd,
     )
 
-    output_queue: queue.Queue[str | None] = queue.Queue()
+    output_queue: "queue.Queue[Optional[str]]" = queue.Queue()
     GRACEFUL_SHUTDOWN_DELAY = 0.3
 
     def is_turn_completed(line: str) -> bool:
