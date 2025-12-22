@@ -5,6 +5,7 @@ Wraps the Gemini CLI to provide a JSON-based interface for Claude.
 
 import json
 import os
+import sys
 import queue
 import subprocess
 import threading
@@ -96,7 +97,21 @@ def windows_escape(prompt):
     return result
 
 
+def configure_windows_stdio() -> None:
+    """Configure stdout/stderr to use UTF-8 encoding on Windows."""
+    if os.name != "nt":
+        return
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            try:
+                reconfigure(encoding="utf-8")
+            except (ValueError, OSError):
+                pass
+
+
 def main():
+    configure_windows_stdio()
     parser = argparse.ArgumentParser(description="Gemini Bridge")
     parser.add_argument("--PROMPT", required=True, help="Instruction for the task to send to gemini.")
     parser.add_argument("--cd", required=True, type=Path, help="Set the workspace root for gemini before executing the task.")
