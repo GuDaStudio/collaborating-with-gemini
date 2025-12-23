@@ -52,11 +52,23 @@ def _resolve_executable(name: str, env: dict) -> str:
     if os.path.isabs(name) or os.sep in name or (os.altsep and os.altsep in name):
         return name
     path_key = next((k for k in env if k.upper() == "PATH"), "PATH")
-    if resolved := shutil.which(name, path=env.get(path_key)):
+    path_val = env.get(path_key)
+    win_exts = {".exe", ".cmd", ".bat", ".com"}
+    if resolved := shutil.which(name, path=path_val):
+        if os.name == "nt":
+            suffix = Path(resolved).suffix.lower()
+            if not suffix:
+                resolved_dir = str(Path(resolved).parent)
+                for ext in (".cmd", ".bat", ".exe", ".com"):
+                    candidate = Path(resolved_dir) / f"{name}{ext}"
+                    if candidate.is_file():
+                        return str(candidate)
+            elif suffix not in win_exts:
+                return resolved
         return resolved
     if os.name == "nt":
         for base in _get_windows_npm_paths():
-            for ext in (".cmd", ".bat", ".exe"):
+            for ext in (".cmd", ".bat", ".exe", ".com"):
                 candidate = base / f"{name}{ext}"
                 if candidate.is_file():
                     return str(candidate)
